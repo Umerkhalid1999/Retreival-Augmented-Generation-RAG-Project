@@ -1,4 +1,7 @@
 # Animated RAG Pipeline - Portfolio Demo
+<img width="852" height="445" alt="image" src="https://github.com/user-attachments/assets/bc1e8363-5e31-44ad-a9ea-cd98dad41174" />
+<img width="805" height="443" alt="image" src="https://github.com/user-attachments/assets/86d73683-d5c9-4083-a38b-1b491ce81054" />
+<img width="811" height="442" alt="image" src="https://github.com/user-attachments/assets/67803637-3592-4069-b62b-94fc6057ac0f" />
 
 An interactive Flask web application that visualizes the Retrieval Augmented Generation (RAG) pipeline with beautiful animations. Perfect for demonstrating your understanding of RAG systems to potential clients on Upwork!
 
