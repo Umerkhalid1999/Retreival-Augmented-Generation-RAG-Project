@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI RAG Pipeline Visualizer - Interactive Demo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+</head>
+<body class="modern-bg">
+    <!-- Modern Navigation -->
+    <nav class="modern-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-brain nav-icon"></i>
+                <span class="nav-title">AI RAG Pipeline</span>
+                <span class="nav-subtitle">Interactive Visualizer</span>
+            </div>
+            <div class="nav-actions">
+                <div class="status-indicator" id="systemStatus">
+                    <i class="fas fa-circle"></i>
+                    <span>Ready</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="panel-section">
+                <h3 class="panel-title">
+                    <i class="fas fa-upload"></i>
+                    Upload Document
+                </h3>
+                
+                <!-- Upload Area -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h4>Drop your PDF here</h4>
+                        <p>or click to browse files</p>
+                        <input type="file" id="pdfFile" accept=".pdf" hidden>
+                        <button class="upload-btn" onclick="document.getElementById('pdfFile').click()">
+                            Choose File
+                        </button>
+                    </div>
+                    <div class="upload-progress" id="uploadProgress" style="display: none;">
+                        <div class="progress-circle">
+                            <div class="progress-text">0%</div>
+                        </div>
+                        <p>Processing document...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3 class="panel-title">
+                    <i class="fas fa-comments"></i>
+                    Ask Questions
+                </h3>
+                
+                <!-- Question Input -->
+                <div class="question-container">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="questionInput" 
+                            class="modern-input" 
+                            placeholder="Upload a document first to start asking questions..."
+                            disabled
+                            rows="4"
+                        ></textarea>
+                        <button id="askBtn" class="ask-button" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                            Ask AI
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="statusContainer" class="status-container" style="display: none;">
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+        </div>
+
+        <!-- Pipeline Visualization -->
+        <div class="pipeline-container">
+            <div class="pipeline-header">
+                <h2 class="pipeline-title">
+                    <i class="fas fa-project-diagram"></i>
+                    RAG Pipeline Visualization
+                </h2>
+                <div class="pipeline-controls">
+                    <button class="view-toggle active" data-view="document">Document Processing</button>
+                    <button class="view-toggle" data-view="query" id="queryViewBtn" disabled>Query Processing</button>
+                </div>
+            </div>
+
+            <!-- Document Processing Pipeline -->
+            <div id="documentPipeline" class="pipeline-view active">
+                <div class="pipeline-canvas">
+                    <svg class="pipeline-svg" viewBox="0 0 1200 700">
+                        <!-- Background Grid -->
+                        <defs>
+                            <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+                                <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#f0f0f0" stroke-width="1" opacity="0.3"/>
+                            </pattern>
+                            
+                            <!-- Gradient Definitions -->
+                            <linearGradient id="pipelineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                            </linearGradient>
+                            
+                            <linearGradient id="activeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        
+                        <!-- Connection Lines -->
+                        <path id="conn-1-2" d="M 240 250 Q 420 220 540 250" 
+                              class="pipeline-connection" stroke="url(#pipelineGradient)" />
+                        <path id="conn-2-3" d="M 690 250 Q 820 220 890 250" 
+                              class="pipeline-connection" stroke="url(#pipelineGradient)" />
+                        <path id="conn-3-4" d="M 950 300 Q 750 390 640 480" 
+                              class="pipeline-connection" stroke="url(#pipelineGradient)" />
+                        <path id="conn-4-1" d="M 550 530 Q 350 440 240 300" 
+                              class="pipeline-connection" stroke="url(#pipelineGradient)" />
+                        
+                        <!-- Animated Data Flow Particles -->
+                        <circle r="6" fill="#10b981" opacity="0" id="particle-1">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="indefinite">
+                                <mpath href="#conn-1-2"/>
+                            </animateMotion>
+                            <animate attributeName="opacity" values="0;1;1;0" dur="3s" repeatCount="indefinite" begin="indefinite"/>
+                        </circle>
+                        
+                        <circle r="6" fill="#06b6d4" opacity="0" id="particle-2">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="1s">
+                                <mpath href="#conn-2-3"/>
+                            </animateMotion>
+                            <animate attributeName="opacity" values="0;1;1;0" dur="3s" repeatCount="indefinite" begin="1s"/>
+                        </circle>
+                        
+                        <circle r="6" fill="#8b5cf6" opacity="0" id="particle-3">
+                            <animateMotion dur="3s" repeatCount="indefinite" begin="2s">
+                                <mpath href="#conn-3-4"/>
+                            </animateMotion>
+                            <animate attributeName="opacity" values="0;1;1;0" dur="3s" repeatCount="indefinite" begin="2s"/>
+                        </circle>
+                    </svg>
+                    
+                    <!-- Pipeline Nodes -->
+                    <div class="pipeline-node" id="stage-loading" style="left: 150px; top: 180px;">
+                        <div class="node-glow"></div>
+                        <div class="node-body">
+                            <div class="node-icon">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="node-content">
+                                <h4>Document Loading</h4>
+                                <p>PDF parsing & extraction</p>
+                                <div class="node-progress">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="node-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-node" id="stage-splitting" style="left: 600px; top: 180px;">
+                        <div class="node-glow"></div>
+                        <div class="node-body">
+                            <div class="node-icon">
+                                <i class="fas fa-scissors"></i>
+                            </div>
+                            <div class="node-content">
+                                <h4>Text Chunking</h4>
+                                <p>Smart text segmentation</p>
+                                <div class="node-progress">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="node-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-node" id="stage-embedding" style="left: 950px; top: 180px;">
+                        <div class="node-glow"></div>
+                        <div class="node-body">
+                            <div class="node-icon">
+                                <i class="fas fa-vector-square"></i>
+                            </div>
+                            <div class="node-content">
+                                <h4>Embedding</h4>
+                                <p>Vector representation</p>
+                                <div class="node-progress">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="node-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-node" id="stage-vectorstore" style="left: 550px; top: 480px;">
+                        <div class="node-glow"></div>
+                        <div class="node-body">
+                            <div class="node-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="node-content">
+                                <h4>Vector Store</h4>
+                                <p>Searchable index</p>
+                                <div class="node-progress">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="node-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Processing Pipeline -->
+            <div id="queryPipeline" class="pipeline-view" style="display: none;">
+                <div class="pipeline-canvas">
+                    <svg class="pipeline-svg" viewBox="0 0 1200 500">
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        
+                        <!-- Query Flow Lines -->
+                        <path id="query-conn-1-2" d="M 380 230 L 500 230" 
+                              class="pipeline-connection query-line" stroke="url(#activeGradient)" />
+                        <path id="query-conn-2-3" d="M 760 230 L 880 230" 
+                              class="pipeline-connection query-line" stroke="url(#activeGradient)" />
+                        
+                        <!-- Query Particles -->
+                        <circle r="8" fill="#f59e0b" opacity="0" id="query-particle-1">
+                            <animateMotion dur="2s" repeatCount="indefinite" begin="indefinite">
+                                <mpath href="#query-conn-1-2"/>
+                            </animateMotion>
+                            <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" begin="indefinite"/>
+                        </circle>
+                        
+                        <circle r="8" fill="#ef4444" opacity="0" id="query-particle-2">
+                            <animateMotion dur="2s" repeatCount="indefinite" begin="0.5s">
+                                <mpath href="#query-conn-2-3"/>
+                            </animateMotion>
+                            <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+                        </circle>
+                    </svg>
+                    
+                    <!-- Query Nodes -->
+                    <div class="pipeline-node query-node" id="stage-query" style="left: 200px; top: 180px;">
+                        <div class="node-glow"></div>
+                        <div class="node-body">
+                            <div class="node-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <div class="node-content">
+                                <h4>Query Processing</h4>
+                                <p>Understanding user intent</p>
+                                <div class="node-progress">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="node-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-node query-node" id="stage-retrieval" style="left: 580px; top: 180px;">
+                        <div class="node-glow"></div>
+                        <div class="node-body">
+                            <div class="node-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="node-content">
+                                <h4>Document Retrieval</h4>
+                                <p>Finding relevant chunks</p>
+                                <div class="node-progress">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="node-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pipeline-node query-node" id="stage-generation" style="left: 960px; top: 180px;">
+                        <div class="node-glow"></div>
+                        <div class="node-body">
+                            <div class="node-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="node-content">
+                                <h4>Answer Generation</h4>
+                                <p>AI-powered response</p>
+                                <div class="node-progress">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <div class="node-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div id="resultsPanel" class="results-panel" style="display: none;">
+            <div class="results-header">
+                <h3><i class="fas fa-lightbulb"></i> AI Response</h3>
+                <button class="close-results" onclick="closeResults()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="results-content">
+                <div class="question-display">
+                    <h4>Your Question:</h4>
+                    <p id="displayQuestion"></p>
+                </div>
+                <div class="answer-display">
+                    <h4>AI Answer:</h4>
+                    <div id="displayAnswer" class="answer-text"></div>
+                </div>
+                <div class="document-stats-inline">
+                    <div class="stats-row">
+                        <div class="inline-stat">
+                            <i class="fas fa-file-alt"></i>
+                            <span id="resultPagesCount">-</span> pages
+                        </div>
+                        <div class="inline-stat">
+                            <i class="fas fa-puzzle-piece"></i>
+                            <span id="resultChunksCount">-</span> chunks
+                        </div>
+                        <div class="inline-stat">
+                            <i class="fas fa-search"></i>
+                            <span id="resultRetrievalCount">3</span> retrieved
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Details -->
+        <div id="processingDetails" class="details-panel" style="display: none;">
+            <div class="details-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="pagesCount">-</div>
+                            <div class="stat-label">Pages</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="chunksCount">-</div>
+                            <div class="stat-label">Chunks</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">OpenAI</div>
+                            <div class="stat-label">Model</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
